@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import time
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
 
@@ -230,6 +230,7 @@ class HtmlCrawler:
         self,
         party: PartyConfig,
         client: httpx.Client | None = None,
+        on_progress: Callable[[str], None] | None = None,
     ) -> list[PageRecord]:
         """Crawl starting pages and eligible first-level direct links for a party."""
         http_client = client or self._get_client()
@@ -237,17 +238,26 @@ class HtmlCrawler:
         visited_urls: set[str] = set()
         first_level_queue: list[str] = []
 
+        def log(msg: str) -> None:
+            if on_progress:
+                on_progress(msg)
+
+        log(f"[{party.id}] Starting crawl for '{party.name}' ({len(party.starting_urls)} starting URL(s))...")
+
         # Step 1: Process starting pages
         for start_url in party.starting_urls:
+            log(f"[{party.id}] Processing starting page: {start_url}")
             norm_res = resolve_and_normalize_url(start_url, start_url)
             if norm_res.is_err():
+                reason = norm_res.unwrap_err()
+                log(f"[{party.id}] [FAIL] Invalid starting URL: {start_url} ({reason})")
                 records.append(
                     PageRecord(
                         party_id=party.id,
                         attempted_url=start_url,
                         is_starting_page=True,
                         success=False,
-                        error_message=f"Invalid starting URL: {norm_res.unwrap_err()}",
+                        error_message=f"Invalid starting URL: {reason}",
                     )
                 )
                 continue
@@ -262,31 +272,38 @@ class HtmlCrawler:
                 clean_start, party, self.exclusion_config
             )
             if allowed_res.is_err():
+                reason = allowed_res.unwrap_err()
+                log(f"[{party.id}] [SKIP] Starting URL excluded: {clean_start} ({reason})")
                 records.append(
                     PageRecord(
                         party_id=party.id,
                         attempted_url=clean_start,
                         is_starting_page=True,
                         success=False,
-                        error_message=f"Starting URL rejected: {allowed_res.unwrap_err()}",
+                        error_message=f"Starting URL rejected: {reason}",
                     )
                 )
                 continue
 
+            log(f"[{party.id}] Fetching: {clean_start} ...")
             fetch_res = self.fetch_url(clean_start, http_client)
             if fetch_res.is_err():
+                err_msg = fetch_res.unwrap_err()
+                log(f"[{party.id}] [FAIL] Could not fetch starting page: {clean_start} ({err_msg})")
                 records.append(
                     PageRecord(
                         party_id=party.id,
                         attempted_url=clean_start,
                         is_starting_page=True,
                         success=False,
-                        error_message=fetch_res.unwrap_err(),
+                        error_message=err_msg,
                     )
                 )
                 continue
 
             final_url, status_code, content_type, html = fetch_res.unwrap()
+            content_bytes = len(html.encode("utf-8"))
+            log(f"[{party.id}] [OK] Fetched starting page ({status_code}, {content_bytes} bytes). Discovering links...")
             records.append(
                 PageRecord(
                     party_id=party.id,
@@ -296,13 +313,14 @@ class HtmlCrawler:
                     is_starting_page=True,
                     success=True,
                     content_type=content_type,
-                    content_bytes=len(html.encode("utf-8")),
+                    content_bytes=content_bytes,
                     html=html,
                 )
             )
 
             # Extract first-level links only from successful starting pages
             links = self.extract_links(html, final_url)
+            eligible_new_links = 0
             for link in links:
                 if link in visited_urls:
                     continue
@@ -310,27 +328,36 @@ class HtmlCrawler:
                 if is_url_allowed_for_party(link, party, self.exclusion_config).is_ok():
                     if link not in first_level_queue:
                         first_level_queue.append(link)
+                        eligible_new_links += 1
+
+            log(f"[{party.id}] Found {len(links)} links on starting page ({eligible_new_links} eligible first-level policy links queued).")
 
         # Step 2: Fetch first-level links (strictly depth = 1, do NOT extract further links)
-        for link in first_level_queue:
+        total_queued = len(first_level_queue)
+        for idx, link in enumerate(first_level_queue, start=1):
             if link in visited_urls:
                 continue
             visited_urls.add(link)
 
+            log(f"[{party.id}] [{idx}/{total_queued}] Fetching: {link} ...")
             fetch_res = self.fetch_url(link, http_client)
             if fetch_res.is_err():
+                err_msg = fetch_res.unwrap_err()
+                log(f"[{party.id}] [{idx}/{total_queued}] [FAIL] {link} -> {err_msg}")
                 records.append(
                     PageRecord(
                         party_id=party.id,
                         attempted_url=link,
                         is_starting_page=False,
                         success=False,
-                        error_message=fetch_res.unwrap_err(),
+                        error_message=err_msg,
                     )
                 )
                 continue
 
             final_url, status_code, content_type, html = fetch_res.unwrap()
+            content_bytes = len(html.encode("utf-8"))
+            log(f"[{party.id}] [{idx}/{total_queued}] [OK] {final_url} (status {status_code}, {content_bytes} bytes)")
             records.append(
                 PageRecord(
                     party_id=party.id,
@@ -340,24 +367,28 @@ class HtmlCrawler:
                     is_starting_page=False,
                     success=True,
                     content_type=content_type,
-                    content_bytes=len(html.encode("utf-8")),
+                    content_bytes=content_bytes,
                     html=html,
                 )
             )
 
+        log(f"[{party.id}] Completed: {sum(1 for r in records if r.success)} succeeded, {sum(1 for r in records if not r.success)} failed.")
         return records
 
     def crawl_all(
         self,
         parties: list[PartyConfig],
         client: httpx.Client | None = None,
+        on_progress: Callable[[str], None] | None = None,
     ) -> CrawlManifest:
         """Crawl starting pages and first-level links for all supplied parties."""
         http_client = client or self._get_client()
         manifest = CrawlManifest()
 
-        for party in parties:
-            party_records = self.crawl_party(party, client=http_client)
+        for idx, party in enumerate(parties, start=1):
+            if on_progress:
+                on_progress(f"\n>>> [{idx}/{len(parties)}] Processing Party: {party.name} ({party.id})")
+            party_records = self.crawl_party(party, client=http_client, on_progress=on_progress)
             manifest.records.extend(party_records)
 
         return manifest
@@ -366,6 +397,7 @@ class HtmlCrawler:
         self,
         parties: list[PartyConfig],
         client: httpx.Client | None = None,
+        on_progress: Callable[[str], None] | None = None,
     ) -> CrawlManifest:
         """Alias for crawl_all."""
-        return self.crawl_all(parties=parties, client=client)
+        return self.crawl_all(parties=parties, client=client, on_progress=on_progress)
