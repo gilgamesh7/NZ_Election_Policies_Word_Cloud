@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nz-policy-wordcloud"
+version = "0.1.0"
+description = "Collect publicly accessible HTML policy content from NZ political party websites, analyse frequency and TF-IDF, and generate word clouds."
+readme = "README.md"
+requires-python = ">=3.14"
+license = { text = "MIT" }
+authors = [
+    { name = "VR Babu" }
+]
+dependencies = [
+    "httpx>=0.28.0",
+    "beautifulsoup4>=4.15.0",
+    "trafilatura>=2.3.0",
+    "wordcloud>=1.9.0",
+    "scikit-learn>=1.9.0",
+    "result>=0.17.0",
+    "pydantic>=2.14.0",
+    "pyyaml>=6.0.0",
+    "matplotlib>=3.11.0",
+    "pillow>=11.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.1.0",
+    "jupyter>=1.1.0",
+    "notebook>=7.6.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nz_policy_wordcloud"]
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-v"

@@ -218,3 +218,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project runtime outputs and local artifacts
+outputs/
+.agent/create_notebook.py
+

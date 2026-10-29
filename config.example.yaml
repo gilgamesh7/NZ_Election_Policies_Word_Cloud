@@ -1,0 +1,64 @@
+# Example configuration for NZ Political Party Policies Word Cloud
+# Copy this file to config.yaml and configure real party details.
+# DO NOT commit sensitive or proprietary data.
+
+crawler_settings:
+  user_agent: "NZPolicyWordCloudResearch/1.0 (exploratory civic research bot; +https://example.org/bot)"
+  request_timeout_seconds: 10.0
+  delay_seconds: 1.0
+  max_retries: 2
+  max_bytes: 5242880  # 5 MB limit per page
+
+exclusions:
+  # Path patterns to ignore during crawling (e.g., administrative, transactional)
+  path_patterns:
+    - "/donate"
+    - "/join"
+    - "/volunteer"
+    - "/shop"
+    - "/cart"
+    - "/checkout"
+    - "/login"
+    - "/privacy"
+    - "/terms"
+    - "/contact"
+    - "/media-release"
+  # File extensions to ignore
+  file_extensions:
+    - ".pdf"
+    - ".zip"
+    - ".tar"
+    - ".gz"
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".svg"
+    - ".mp3"
+    - ".mp4"
+    - ".docx"
+    - ".xlsx"
+  # Custom stop words excluded in addition to standard English stop words
+  custom_stop_words:
+    - "policy"
+    - "policies"
+    - "page"
+    - "click"
+    - "read"
+    - "more"
+
+parties:
+  - id: "sample_party_one"
+    name: "Sample Party One"
+    allowed_domains:
+      - "example.org"
+      - "www.example.org"
+    starting_urls:
+      - "https://example.org/policies"
+
+  - id: "sample_party_two"
+    name: "Sample Party Two"
+    allowed_domains:
+      - "sample.test"
+    starting_urls:
+      - "https://sample.test/manifesto"

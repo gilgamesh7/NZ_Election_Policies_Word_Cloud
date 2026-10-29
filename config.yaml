@@ -1,0 +1,117 @@
+# Default NZ Political Party Policy Collection Configuration
+# Defines crawler settings, exclusion patterns, and party starting URLs
+
+crawler_settings:
+  user_agent: "NZPolicyWordCloudResearch/1.0 (academic exploratory civic research bot; +https://github.com/vrbabu/NZ_Election_Policies_Word_Cloud)"
+  request_timeout_seconds: 10.0
+  delay_seconds: 1.0
+  max_retries: 2
+  max_bytes: 5242880  # 5 MB
+
+exclusions:
+  path_patterns:
+    - "/donate"
+    - "/join"
+    - "/volunteer"
+    - "/shop"
+    - "/cart"
+    - "/checkout"
+    - "/login"
+    - "/signin"
+    - "/register"
+    - "/privacy"
+    - "/terms"
+    - "/contact"
+    - "/media-release"
+    - "/press-release"
+  file_extensions:
+    - ".pdf"
+    - ".zip"
+    - ".tar"
+    - ".gz"
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".svg"
+    - ".mp3"
+    - ".mp4"
+    - ".docx"
+    - ".xlsx"
+  custom_stop_words:
+    - "policy"
+    - "policies"
+    - "plan"
+    - "party"
+    - "government"
+    - "new"
+    - "zealand"
+    - "page"
+    - "click"
+    - "read"
+    - "share"
+
+parties:
+  - id: "national"
+    name: "National Party"
+    allowed_domains:
+      - "national.org.nz"
+      - "www.national.org.nz"
+    starting_urls:
+      - "https://www.national.org.nz/plan"
+
+  - id: "labour"
+    name: "Labour Party"
+    allowed_domains:
+      - "labour.org.nz"
+      - "www.labour.org.nz"
+    starting_urls:
+      - "https://www.labour.org.nz/our-policies"
+
+  - id: "greens"
+    name: "Green Party"
+    allowed_domains:
+      - "greens.org.nz"
+      - "www.greens.org.nz"
+    starting_urls:
+      - "https://www.greens.org.nz/policy"
+
+  - id: "act"
+    name: "ACT New Zealand"
+    allowed_domains:
+      - "act.org.nz"
+      - "www.act.org.nz"
+    starting_urls:
+      - "https://www.act.org.nz/policies"
+
+  - id: "nz_first"
+    name: "New Zealand First"
+    allowed_domains:
+      - "nzfirst.nz"
+      - "www.nzfirst.nz"
+    starting_urls:
+      - "https://www.nzfirst.nz/policy"
+
+  - id: "te_pati_maori"
+    name: "Te Pāti Māori"
+    allowed_domains:
+      - "maoriparty.org.nz"
+      - "www.maoriparty.org.nz"
+    starting_urls:
+      - "https://www.maoriparty.org.nz/policy"
+
+  - id: "top"
+    name: "The Opportunities Party"
+    allowed_domains:
+      - "opportunity.org.nz"
+      - "www.opportunity.org.nz"
+    starting_urls:
+      - "https://www.opportunity.org.nz/policy"
+
+  - id: "alcp"
+    name: "Aotearoa Legalise Cannabis Party"
+    allowed_domains:
+      - "alcp.org.nz"
+      - "www.alcp.org.nz"
+    starting_urls:
+      - "https://www.alcp.org.nz/policy"

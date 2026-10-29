@@ -1,0 +1,13 @@
+** AGENT IS NOT TO USE THIS FILE , IGNORE - THIS IS FOR MY USE ONLY **
+
+Step 1 :
+========
+Read AGENTS.md first. Then inspect the current workspace, including existing files, project configuration, and Git status.
+We are starting a new project to create a word cloud of NZ political parties.
+Execute the 9 phases stipulated in .agent/IMPLEMENTATION.md
+
+Step 2 :
+========
+Create a virtual environment before installing anything, and install the necessary packages in it and use it as a run time.
+Proceed with Phase 1
+
