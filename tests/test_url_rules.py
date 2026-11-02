@@ -190,3 +190,48 @@ class TestIsUrlAllowedForParty:
         result = is_url_allowed_for_party(pattern_url, sample_party, sample_exclusions)
         assert result.is_err()
         assert result.unwrap_err() == UrlRejectReason.EXCLUDED_PATH_PATTERN
+
+    def test_rejected_default_exclusions(self, sample_party: PartyConfig) -> None:
+        default_exclusions = ExclusionConfig()
+        test_cases = [
+            "https://example.org/party-information",
+            "https://example.org/about-us",
+            "https://example.org/news/update",
+            "https://example.org/health-and-safety",
+            "https://example.org/our-people",
+            "https://example.org/team/members",
+            "https://example.org/mps/luxon",
+            "https://example.org/events/rally",
+            "https://example.org/terms-of-service",
+            "https://example.org/payment-terms",
+            "https://example.org/groups",
+            "https://example.org/mp-news/update",
+            "https://example.org/sign-in",
+            "https://example.org/tos",
+            "https://example.org/party-rules",
+            "https://example.org/bod",
+            "https://example.org/ourcandidates",
+            "https://example.org/our-team",
+            "https://example.org/members/portal",
+            "https://example.org/about_our_charter",
+            "https://example.org/our_people",
+            "https://example.org/about_us_our_mps",
+            "https://example.org/get_involved",
+            "https://example.org/membership-join",
+            "https://example.org/sign_up",
+            "https://example.org/work-for-us",
+            "https://example.org/email-protection",
+            "https://example.org/calendar/2026",
+            "https://example.org/get-involved",
+            "https://example.org/store/merch",
+            "https://example.org/search?q=test",
+            "https://example.org/facebook/share",
+            "https://example.org/subscribe",
+            "https://example.org/the-team",
+            "https://example.org/north-candidates",
+            "https://example.org/in-memory",
+        ]
+        for url in test_cases:
+            result = is_url_allowed_for_party(url, sample_party, default_exclusions)
+            assert result.is_err(), f"Expected {url} to be rejected by default exclusions"
+            assert result.unwrap_err() == UrlRejectReason.EXCLUDED_PATH_PATTERN

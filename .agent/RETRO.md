@@ -1,6 +1,19 @@
 # Project Retrospective & Lessons Learned
 
-## Phase 5: Text Cleaning & Frequency Analysis
+## Non-Policy Page Exclusions & URL Filtering
+- **Prompt:**
+  > "Add exclusions to stop URLs that contain these tags from being accessed: /groups, mp-news, sign-in, tos, rules, bod, ourcandidates, our-team, members, about_our_charter, our_people, about_us_our_mps, get_involved, membership-join, sign_up, work-for-us, email-protection, calendar, get-involved, store, search, facebook, subscribe, the-team, -candidates, in-memory"
+- **Lessons Learned:**
+  - Expanding substring patterns for site-specific administrative, candidate bio, governance (`bod`, `about_our_charter`, `rules`), engagement (`get_involved`, `membership-join`, `subscribe`, `work-for-us`), and social/technical tracking tags (`facebook`, `email-protection`, `search`, `calendar`) prevents crawling peripheral campaign apparatus while maintaining pure focus on substantive policy platforms.
+  - Substring-level URL rejection catches both path segments and URL parameter/filename variations containing these tokens.
+
+- **Prompt:**
+  > "Add code to stop the use of data from pages unrelated to policies, like "party-information", "about", "news", "health and safety" , "our people", "payment terms and conditions", "terms of service" and such like. I only want the data from policy websites. If this is not possible, let me know if you want the lonks I want excluded provided to you"
+- **Lessons Learned:**
+  - Political party starting policy landing pages frequently link in their navigation header or footer to administrative, organisational, and press release sections (e.g. `/news`, `/about`, `/team`, `/our-people`, `/mps`, `/health-and-safety`, `/party-information`, terms of service, payment policies).
+  - Without expanding URL exclusion patterns, a 1-level crawl can inadvertently ingest dozens of non-policy biographies and announcements, polluting word cloud frequencies with names and operational boilerplate.
+  - Making these exclusions configurable in `config.yaml` under `exclusions.path_patterns` (as well as baking them into `ExclusionConfig` defaults) allows users to filter both exact paths and path prefixes cleanly without altering application code or needing manual individual link exclusion lists.
+
 - **Te Reo Māori Support:** The tokenisation regex explicitly encompasses Unicode macron characters (`[a-z\u0101\u0113\u012b\u014d\u016b]{3,}`), ensuring vital civic and cultural policy terms (such as `whānau`, `māori`, `hauora`) are preserved in analytical results.
 - **Deterministic Tie-Breaking:** Enforcing `(-count, term)` sorting guarantees completely repeatable frequency rankings across test environments and runs.
 

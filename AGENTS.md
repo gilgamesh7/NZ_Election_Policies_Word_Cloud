@@ -22,6 +22,7 @@
 - Add or update tests with each behaviour change.
 - Ask for clarification when requirements are ambiguous or a design decision would materially change scope.
 
+
 ## Development Workflow
 
 1. Review the current repository and existing files.
@@ -30,6 +31,7 @@
 7. Run relevant tests and checks after implementation.
 9. Update .agent/PLAN.md to reflect completed work.
 10. Record useful lessons in .agent/RETRO.md.
+11. After every prompt from me to change something, add the prompt to .agent/RETRO.md and what lessons were learnt from that prompt.
 
 ## Product and Engineering Standards
 
